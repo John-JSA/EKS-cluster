@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, 'Segoe UI', sans-serif; margin: 0; background: #f8faf8; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-green-500 hover:bg-green-600 active:scale-95 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 w-full disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white border-2 border-green-500 text-green-600 hover:bg-green-50 active:scale-95 font-semibold py-3 px-6 rounded-xl transition-all duration-200 w-full;
+  }
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 active:scale-95 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+  }
+  .btn-sm {
+    @apply bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-all duration-200;
+  }
+  .input-field {
+    @apply w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5;
+  }
+}
