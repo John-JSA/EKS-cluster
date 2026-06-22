@@ -47,14 +47,14 @@ export default function Page() {
 
     if (!res.ok) throw new Error("Failed to create project");
     await fetchProjects();
-    setMessage("Project submitted successfully.");
+    setMessage("Project submitted for review. It will appear once approved by an admin.");
   }
 
-  async function handleFund(id: number, amount: number) {
+  async function handleFund(id: number, amount: number, donorName?: string) {
     const res = await fetch("/api/projects", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, amount }),
+      body: JSON.stringify({ id, amount, donorName }),
     });
 
     if (!res.ok) throw new Error("Funding update failed");
@@ -124,7 +124,7 @@ export default function Page() {
               key={project.id}
               project={project}
               isSignedIn={isSignedIn}
-              onFund={handleFund}
+              onFund={(id, amount, donorName) => handleFund(id, amount, donorName)}
               onSaveEdit={handleSaveEdit}
               onDelete={handleDelete}
             />
