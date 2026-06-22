@@ -51,15 +51,15 @@ export default function Page() {
   }
 
   async function handleFund(id: number, amount: number, donorName?: string) {
-    const res = await fetch("/api/projects", {
-      method: "PATCH",
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, amount, donorName }),
+      body: JSON.stringify({ projectId: id, amount, donorName }),
     });
 
-    if (!res.ok) throw new Error("Funding update failed");
-    await fetchProjects();
-    setMessage(`${currency(amount)} added successfully.`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to start checkout");
+    window.location.href = data.url;
   }
 
   async function handleSaveEdit(id: number, data: ProjectFormData) {

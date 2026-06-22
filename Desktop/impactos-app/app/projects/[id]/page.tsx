@@ -44,24 +44,20 @@ export default function ProjectDetailPage() {
   }
 
   async function handleFund(amount: number) {
-    if (!isSignedIn) {
-      signIn("github");
-      return;
-    }
+    if (!isSignedIn) { signIn("github"); return; }
     if (amount <= 0) return;
     setIsFunding(true);
     try {
-      const res = await fetch("/api/projects", {
-        method: "PATCH",
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: project!.id, amount, donorName: donorName.trim() || undefined }),
+        body: JSON.stringify({ projectId: project!.id, amount, donorName: donorName.trim() || undefined }),
       });
-      if (!res.ok) throw new Error();
-      await fetchProject();
-      setMessage(`${currency(amount)} donated. Thank you!`);
-    } catch {
-      alert("Funding failed. Please try again.");
-    } finally {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.href = data.url;
+    } catch (err: any) {
+      alert(err.message || "Failed to start checkout.");
       setIsFunding(false);
     }
   }
