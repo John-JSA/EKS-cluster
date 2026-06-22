@@ -47,7 +47,7 @@ export default function Page() {
 
     if (!res.ok) throw new Error("Failed to create project");
     await fetchProjects();
-    setMessage("Project submitted successfully.");
+    setMessage("Project submitted for review. It will appear once approved by an admin.");
   }
 
   async function handleFund(id: number, amount: number, donorName?: string) {

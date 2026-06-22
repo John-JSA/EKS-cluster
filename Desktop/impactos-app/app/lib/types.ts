@@ -13,8 +13,10 @@ export type Project = {
   beneficiaries: string;
   fundingGoal: number;
   raised: number;
+  status: string;
   createdAt?: string;
   donations?: Donation[];
+  owner?: { name: string | null; email: string | null };
 };
 
 export type ProjectFormData = {

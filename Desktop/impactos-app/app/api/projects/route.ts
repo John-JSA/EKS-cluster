@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
+import { sendDonationNotification } from "@/app/lib/email";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,7 @@ function getUserId(session: any) {
 
 export async function GET() {
   const projects = await prisma.project.findMany({
+    where: { status: "APPROVED" },
     orderBy: { createdAt: "desc" },
     include: {
       owner: { select: { name: true, email: true } },
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
       beneficiaries: body.beneficiaries,
       fundingGoal: Number(body.fundingGoal),
       raised: 0,
+      status: "PENDING",
       ownerId: userId,
     },
   });
@@ -53,6 +56,12 @@ export async function PATCH(req: Request) {
 
   if (body.amount) {
     const session = await auth();
+    const userId = getUserId(session);
+
+    if (!userId) {
+      return Response.json({ error: "Sign in to support a project." }, { status: 401 });
+    }
+
     const donorName = session?.user?.name || body.donorName || null;
 
     const [updated] = await prisma.$transaction([
@@ -65,10 +74,25 @@ export async function PATCH(req: Request) {
           amount: Number(body.amount),
           donorName,
           projectId: Number(body.id),
-          userId: session?.user?.id ?? undefined,
+          userId: userId ?? undefined,
         },
       }),
     ]);
+
+    const project = await prisma.project.findUnique({
+      where: { id: Number(body.id) },
+      include: { owner: { select: { name: true, email: true } } },
+    });
+
+    if (project?.owner?.email) {
+      await sendDonationNotification({
+        ownerEmail: project.owner.email,
+        ownerName: project.owner.name || "there",
+        donorName: donorName || "Someone",
+        amount: Number(body.amount),
+        projectTitle: project.title,
+      });
+    }
 
     return Response.json(updated);
   }
@@ -89,10 +113,7 @@ export async function PATCH(req: Request) {
   }
 
   if (existing.ownerId && existing.ownerId !== userId) {
-    return Response.json(
-      { error: "You can only edit your own project." },
-      { status: 403 }
-    );
+    return Response.json({ error: "You can only edit your own project." }, { status: 403 });
   }
 
   const updated = await prisma.project.update({
@@ -129,15 +150,10 @@ export async function DELETE(req: Request) {
   }
 
   if (existing.ownerId && existing.ownerId !== userId) {
-    return Response.json(
-      { error: "You can only delete your own project." },
-      { status: 403 }
-    );
+    return Response.json({ error: "You can only delete your own project." }, { status: 403 });
   }
 
-  await prisma.project.delete({
-    where: { id: Number(body.id) },
-  });
+  await prisma.project.delete({ where: { id: Number(body.id) } });
 
   return Response.json({ success: true });
 }
