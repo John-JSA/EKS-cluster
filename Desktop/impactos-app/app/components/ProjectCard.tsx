@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { currency, progressPercent } from "@/app/lib/utils";
 import { Project, ProjectFormData } from "@/app/lib/types";
 
 type Props = {
   project: Project;
   isSignedIn: boolean;
-  onFund: (id: number, amount: number) => Promise<void>;
+  onFund: (id: number, amount: number, donorName?: string) => Promise<void>;
   onSaveEdit: (id: number, data: ProjectFormData) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 };
@@ -28,10 +28,16 @@ export default function ProjectCard({
   onSaveEdit,
   onDelete,
 }: Props) {
+  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [isFunding, setIsFunding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
+  const [donorName, setDonorName] = useState("");
+
+  useEffect(() => {
+    if (session?.user?.name) setDonorName(session.user.name);
+  }, [session]);
   const [editForm, setEditForm] = useState<EditForm>({
     title: project.title,
     description: project.description,
@@ -90,7 +96,7 @@ export default function ProjectCard({
     }
     setIsFunding(true);
     try {
-      await onFund(project.id, amount);
+      await onFund(project.id, amount, donorName.trim() || undefined);
     } finally {
       setIsFunding(false);
     }
@@ -233,7 +239,17 @@ export default function ProjectCard({
             </button>
           ))}
         </div>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-3">
+          <input
+            type="text"
+            placeholder="Your name (optional — leave blank to be anonymous)"
+            value={donorName}
+            onChange={(e) => setDonorName(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-2 outline-none focus:border-slate-500 text-sm"
+          />
+        </div>
+
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <input
             type="number"
             placeholder="Custom amount"
@@ -250,6 +266,29 @@ export default function ProjectCard({
           </button>
         </div>
       </div>
+
+      {project.donations && project.donations.length > 0 && (
+        <div className="mt-6">
+          <p className="mb-3 text-sm font-semibold text-slate-700">
+            Supporters ({project.donations.length})
+          </p>
+          <div className="space-y-2">
+            {project.donations.map((d) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2 text-sm"
+              >
+                <span className="font-medium text-slate-700">
+                  {d.donorName || "Anonymous"}
+                </span>
+                <span className="font-semibold text-emerald-700">
+                  {currency(d.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <button

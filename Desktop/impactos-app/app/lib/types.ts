@@ -1,3 +1,10 @@
+export type Donation = {
+  id: number;
+  amount: number;
+  donorName: string | null;
+  createdAt: string;
+};
+
 export type Project = {
   id: number;
   title: string;
@@ -7,6 +14,7 @@ export type Project = {
   fundingGoal: number;
   raised: number;
   createdAt?: string;
+  donations?: Donation[];
 };
 
 export type ProjectFormData = {

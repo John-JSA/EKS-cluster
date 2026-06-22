@@ -9,14 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
+  donations     Donation[]
 }
 
 model Account {
@@ -54,14 +55,26 @@ model VerificationToken {
 }
 
 model Project {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String
-  location     String
+  id            Int        @id @default(autoincrement())
+  title         String
+  description   String
+  location      String
   beneficiaries String
-  fundingGoal  Float
-  raised       Float    @default(0)
-  createdAt    DateTime @default(now())
-  ownerId      String?
-  owner        User?    @relation(fields: [ownerId], references: [id])
+  fundingGoal   Float
+  raised        Float      @default(0)
+  createdAt     DateTime   @default(now())
+  ownerId       String?
+  owner         User?      @relation(fields: [ownerId], references: [id])
+  donations     Donation[]
+}
+
+model Donation {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  donorName String?
+  createdAt DateTime @default(now())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
 }
