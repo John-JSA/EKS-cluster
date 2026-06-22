@@ -70,12 +70,13 @@ model Project {
 }
 
 model Donation {
-  id        Int      @id @default(autoincrement())
-  amount    Float
-  donorName String?
-  createdAt DateTime @default(now())
-  projectId Int
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
+  id              Int      @id @default(autoincrement())
+  amount          Float
+  donorName       String?
+  createdAt       DateTime @default(now())
+  projectId       Int
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  stripeSessionId String?  @unique
 }
